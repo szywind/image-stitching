@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+'''
+@author: Zhenyuan Shen
+@mail: zshen52@wisc.edu
+
+'''
 import os
 import glob
 import cv2
@@ -5,8 +11,8 @@ import numpy as np
 from tqdm import tqdm
 
 root = os.path.dirname(os.path.dirname(__file__))
-input_dir = os.path.join(root, 'raw/test')
-output_dir = os.path.join(root, 'input/test')
+input_dir = os.path.join(root, 'raw')
+output_dir = os.path.join(root, 'input')
 if not os.path.isdir(output_dir):
     os.makedirs(output_dir)
 print('input_dir: ', input_dir)
@@ -90,32 +96,39 @@ def line_detect_possible_demo(image, do_visualize=True):
         cv2.imshow("line_detect_possible_demo", image)
     return lines
 
-def crop_image(src, lines, epsilon=1e-5, img_full_name=None, do_save=True):
+def crop_image(src, lines, epsilon=1e-5, img_full_name=None, prefix='', do_save=True, do_split=False):
     if do_save and img_full_name == None:
         raise ValueError('invalid file name')
+    img_name, img_ext = os.path.splitext(img_full_name)
+
     h, w = src.shape[:2]
     y, x = 0, 0
+    mid = None
     for line in lines:
-        line = line[0]
-        if abs(line[1]) < epsilon: # horizontal line
-            y = max(y, line[0])
-        elif abs(line[1] * 2 - np.pi) < epsilon: # vertical line
-            x = max(x, line[0])
+        _line = line[0]
+        if abs(_line[1]) < epsilon: # horizontal line
+            x = max(x, _line[0])
+            if do_split and abs(_line[0] + 1 - w // 2) < epsilon: # TODO: hard code， 495 == w // 2
+                mid = int(_line[0])
+        elif abs(_line[1] * 2 - np.pi) < epsilon: # vertical line
+            y = max(y, _line[0])
+
+
     if y == 0:
         y = h
     if x == 0:
         x = w
-    dst = src[:int(x), :int(y)]
+    dst = src[:int(y), :int(x)]
     if do_save:
-        cv2.imwrite(os.path.join(output_dir, 'test_' + img_full_name), dst)
-
-img_list = glob.glob(os.path.join(input_dir, '2D*.jpg'))
-print('img_list: ', len(img_list), img_list[0])
+        if do_split:
+            cv2.imwrite(os.path.join(output_dir, prefix + '{}_left.{}'.format(img_name, img_ext)), dst[:, :mid+1])
+            cv2.imwrite(os.path.join(output_dir, prefix + '{}_right.{}'.format(img_name, img_ext)), dst[:, mid+1:])
+        else:
+            cv2.imwrite(os.path.join(output_dir, prefix + img_full_name), dst)
 
 def process_batch(img_list):
     for img_path in tqdm(img_list, desc='process images ...', ncols=100):
         img_full_name = os.path.basename(img_path)
-        img_name, img_ext = os.path.splitext(img_full_name)
 
         print('input image: ', img_path)
         src = cv2.imread(img_path)
@@ -126,7 +139,12 @@ def process_batch(img_list):
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-        crop_image(src, lines, img_full_name=img_full_name)
+        do_split = u'车轮' in img_full_name
+        crop_image(src, lines, img_full_name=img_full_name, do_split=do_split)
 
 if __name__ == '__main__':
+    img_list = glob.glob(os.path.join(input_dir, '2D*.jpg'))
+    img_list_wheel = list(filter(lambda x: u'车轮' in x, img_list))
+    print('img_list: ', len(img_list), img_list[0])
     process_batch(img_list)
+
