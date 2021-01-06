@@ -10,6 +10,7 @@ import os
 import glob
 import cv2
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
 
 root = os.path.dirname(os.path.dirname(__file__))
@@ -144,9 +145,55 @@ def process_batch(img_list):
         do_split = u'车轮' in img_full_name
         crop_image(src, lines, img_full_name=img_full_name, do_split=do_split)
 
-if __name__ == '__main__':
-    img_list = glob.glob(os.path.join(input_dir, '2D*.jpg'))
-    img_list_wheel = list(filter(lambda x: u'车轮' in x, img_list))
-    print('img_list: ', len(img_list), img_list[0])
-    process_batch(img_list)
+def visualize_keypoints(img_path, pts_path):
+    img = cv2.imread(img_path)
+    kps = pd.read_csv(pts_path, header=None)
+    cv2.imshow('input', img)
+    # Radius of circle
+    radius = 2
+    # Blue color in BGR
+    color = (0, 0, 255)
+    # Line thickness of 2 px
+    thickness = -1
 
+    print(pts_path)
+    for idx, kp in kps.iterrows():
+        cv2.circle(img, (kp[1], kp[2]), radius, color, thickness, lineType=8, shift=0)
+        cv2.putText(img, str(kp[0]), (kp[1]-10, kp[2]-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,165,255))
+    cv2.imshow('result', img)
+    return img
+
+if __name__ == '__main__':
+    ## data cropping
+    # img_list = glob.glob(os.path.join(input_dir, '2D*.jpg'))
+    # img_list_wheel = list(filter(lambda x: u'车轮' in x, img_list))
+    # print('img_list: ', len(img_list), img_list[0])
+    # process_batch(img_list)
+
+    ## vizualize annotations
+    input_dir, output_dir = output_dir, os.path.join(root, 'output')
+    img_name = u'2D_车轮视角2_right'
+    img_path = os.path.join(input_dir, img_name + '.jpg')
+    pts_path = os.path.join(root, 'keypoints', 'labels_' + img_name + '.csv')
+    fig_dir = os.path.join(root, 'figures')
+    if not os.path.isdir(fig_dir):
+        os.makedirs(fig_dir)
+    output_path = os.path.join(fig_dir, 'anno_' + img_name + '.jpg')
+    if not os.path.exists(pts_path) or not os.path.exists(img_path):
+        raise FileNotFoundError('File Not Found!')
+    res_img = visualize_keypoints(img_path, pts_path)
+    cv2.imwrite(output_path, res_img)
+    cv2.waitKey(0)
+
+    img_name = u'全景拼接画面'
+    img_path = os.path.join(output_dir, img_name + '.jpg')
+    pts_path = os.path.join(root, 'keypoints', 'labels_' + img_name + '.csv')
+    output_path = os.path.join(fig_dir, 'anno_' + img_name + '.jpg')
+    if not os.path.exists(pts_path) or not os.path.exists(img_path):
+        raise FileNotFoundError('File Not Found!')
+    res_img = visualize_keypoints(img_path, pts_path)
+    cv2.imwrite(output_path, res_img)
+    cv2.waitKey(0)
+
+    # closing all open windows
+    cv2.destroyAllWindows()
