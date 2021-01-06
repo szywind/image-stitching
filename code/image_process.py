@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 '''
 @author: Zhenyuan Shen
-@mail: zshen52@wisc.edu
+@email: zshen52@wisc.edu
+        zhenyuanshen@microsoft.com
+@date: 2021/1/5
 
 '''
 import os
@@ -121,8 +123,8 @@ def crop_image(src, lines, epsilon=1e-5, img_full_name=None, prefix='', do_save=
     dst = src[:int(y), :int(x)]
     if do_save:
         if do_split:
-            cv2.imwrite(os.path.join(output_dir, prefix + '{}_left.{}'.format(img_name, img_ext)), dst[:, :mid+1])
-            cv2.imwrite(os.path.join(output_dir, prefix + '{}_right.{}'.format(img_name, img_ext)), dst[:, mid+1:])
+            cv2.imwrite(os.path.join(output_dir, prefix + '{}_left{}'.format(img_name, img_ext)), dst[:, :mid+1])
+            cv2.imwrite(os.path.join(output_dir, prefix + '{}_right{}'.format(img_name, img_ext)), dst[:, mid+1:])
         else:
             cv2.imwrite(os.path.join(output_dir, prefix + img_full_name), dst)
 
