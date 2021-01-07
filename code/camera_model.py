@@ -26,15 +26,15 @@ def evaluate_homography_matrix(im_src, pts_src, im_dst, pts_dst):
     :return:
     '''
     h, status = cv2.findHomography(pts_src, pts_dst)
-
+    print('homography status', status.shape, status.flatten())
     ''' 
     The calculated homography can be used to warp 
     the source image to destination. Size is the 
     size (width, height) of im_dst
     '''
     size = (im_dst.shape[1], im_dst.shape[0])
-    im_dst = cv2.warpPerspective(im_src, h, size)
-    return im_dst
+    im_wrap = cv2.warpPerspective(im_src, h, size, borderMode=cv2.BORDER_CONSTANT, borderValue=(0,0,0,0))
+    return im_wrap
 
 if __name__ == '__main__':
     img_fullname_dst = u'全景拼接画面.jpg'
@@ -45,6 +45,7 @@ if __name__ == '__main__':
     assert len(set(df_kps_dst[0].tolist())) == len(df_kps_dst[0].tolist()) # check uniqueness
 
     img_list = glob.glob(os.path.join(input_dir, '2D*.jpg'))
+    # img_list = [img for img in img_list if u'2D_后视角' in img]
     for img_path in tqdm(img_list, desc='process image ...', ncols=100):
         img_fullname_src = os.path.basename(img_path)
         img_src = cv2.imread(img_path)
@@ -61,7 +62,16 @@ if __name__ == '__main__':
         kps_dst = df_kps_dst.loc[mask, 1:2].to_numpy()
         kps_src = df_kps_src.loc[:, 1:2].to_numpy()
 
+        # if u'2D_后视角' in img_name_src:
+        #     # flip image and kps
+        #     img_src = cv2.flip(img_src, 1)
+        #     h, w = img_src.shape[:2]
+        #     kps_src[:, 0] = w - 1 - kps_src[:, 0]
+
         res_img = evaluate_homography_matrix(img_src, kps_src, img_dst, kps_dst)
+
+        if u'2D_后视角' in img_name_src:
+            res_img[:res_img.shape[0]//2, :] = 0
 
         cv2.imshow('result', res_img)
         cv2.imwrite(os.path.join(output_dir, 'wrap_' + img_fullname_src), res_img)
