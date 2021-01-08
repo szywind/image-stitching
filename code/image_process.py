@@ -172,7 +172,7 @@ if __name__ == '__main__':
 
     ## vizualize annotations
     input_dir, output_dir = output_dir, os.path.join(root, 'output')
-    img_name = u'2D_车轮视角2_right'
+    img_name = u'2D_车头视角2'
     img_path = os.path.join(input_dir, img_name + '.jpg')
     pts_path = os.path.join(root, 'keypoints', 'labels_' + img_name + '.csv')
     fig_dir = os.path.join(root, 'figures')

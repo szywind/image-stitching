@@ -10,6 +10,7 @@ import os
 import cv2
 import glob
 import pandas as pd
+import numpy as np
 from tqdm import tqdm
 
 root = os.path.dirname(os.path.dirname(__file__))
@@ -45,7 +46,7 @@ if __name__ == '__main__':
     assert len(set(df_kps_dst[0].tolist())) == len(df_kps_dst[0].tolist()) # check uniqueness
 
     img_list = glob.glob(os.path.join(input_dir, '2D*.jpg'))
-    # img_list = [img for img in img_list if u'2D_后视角' in img]
+    # img_list = [img for img in img_list if u'2D_车头视角2' in img]
     for img_path in tqdm(img_list, desc='process image ...', ncols=100):
         img_fullname_src = os.path.basename(img_path)
         img_src = cv2.imread(img_path)
@@ -70,8 +71,12 @@ if __name__ == '__main__':
 
         res_img = evaluate_homography_matrix(img_src, kps_src, img_dst, kps_dst)
 
+        ## TODO: use line detection later
         if u'2D_后视角' in img_name_src:
             res_img[:res_img.shape[0]//2, :] = 0
+
+        if u'2D_车头视角2' in img_name_src:
+            res_img[350:, :] = 0
 
         cv2.imshow('result', res_img)
         cv2.imwrite(os.path.join(output_dir, 'wrap_' + img_fullname_src), res_img)
