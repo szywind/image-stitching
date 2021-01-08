@@ -172,18 +172,21 @@ if __name__ == '__main__':
 
     ## vizualize annotations
     input_dir, output_dir = output_dir, os.path.join(root, 'output')
-    img_name = u'2D_车头视角2'
-    img_path = os.path.join(input_dir, img_name + '.jpg')
-    pts_path = os.path.join(root, 'keypoints', 'labels_' + img_name + '.csv')
-    fig_dir = os.path.join(root, 'figures')
-    if not os.path.isdir(fig_dir):
-        os.makedirs(fig_dir)
-    output_path = os.path.join(fig_dir, 'anno_' + img_name + '.jpg')
-    if not os.path.exists(pts_path) or not os.path.exists(img_path):
-        raise FileNotFoundError('File Not Found!')
-    res_img = visualize_keypoints(img_path, pts_path)
-    cv2.imwrite(output_path, res_img)
-    cv2.waitKey(0)
+    img_list = glob.glob(os.path.join(input_dir, '2D*.jpg'))
+    # img_list = [img for img in img_list if u'2D_车头视角2' in img]
+    for img_path in tqdm(img_list, desc='process image ...', ncols=100):
+        img_fullname = os.path.basename(img_path)
+        img_name = os.path.splitext(img_fullname)[0]
+        pts_path = os.path.join(root, 'keypoints', 'labels_' + img_name + '.csv')
+        fig_dir = os.path.join(root, 'figures')
+        if not os.path.isdir(fig_dir):
+            os.makedirs(fig_dir)
+        output_path = os.path.join(fig_dir, 'anno_' + img_fullname)
+        if not os.path.exists(pts_path) or not os.path.exists(img_path):
+            raise FileNotFoundError('File Not Found!')
+        res_img = visualize_keypoints(img_path, pts_path)
+        cv2.imwrite(output_path, res_img)
+        cv2.waitKey(0)
 
     img_name = u'全景拼接画面'
     img_path = os.path.join(output_dir, img_name + '.jpg')

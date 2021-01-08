@@ -72,11 +72,16 @@ if __name__ == '__main__':
         res_img = evaluate_homography_matrix(img_src, kps_src, img_dst, kps_dst)
 
         ## TODO: use line detection later
+        TOP, BOTTOM, LEFT, RIGHT = 350, 1050, 340, 650
         if u'2D_后视角' in img_name_src:
-            res_img[:res_img.shape[0]//2, :] = 0
-
+            res_img[:BOTTOM, :] = 0
         if u'2D_车头视角2' in img_name_src:
-            res_img[350:, :] = 0
+            res_img[TOP:, :] = 0
+
+        if '_left' in img_name_src:
+            res_img[:, LEFT:] = 0
+        if '_right' in img_name_src:
+            res_img[:, :RIGHT] = 0
 
         cv2.imshow('result', res_img)
         cv2.imwrite(os.path.join(output_dir, 'wrap_' + img_fullname_src), res_img)
