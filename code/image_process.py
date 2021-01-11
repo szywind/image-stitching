@@ -16,6 +16,8 @@ from tqdm import tqdm
 root = os.path.dirname(os.path.dirname(__file__))
 input_dir = os.path.join(root, 'raw')
 output_dir = os.path.join(root, 'input')
+sub_dir = 'set0'
+
 if not os.path.isdir(output_dir):
     os.makedirs(output_dir)
 print('input_dir: ', input_dir)
@@ -172,18 +174,24 @@ if __name__ == '__main__':
 
     ## vizualize annotations
     input_dir, output_dir = output_dir, os.path.join(root, 'output')
-    img_list = glob.glob(os.path.join(input_dir, '2D*.jpg'))
+    img_list = glob.glob(os.path.join(input_dir, sub_dir, '2D*.jpg'))
     # img_list = [img for img in img_list if u'2D_车头视角2' in img]
+
+    fig_dir = os.path.join(root, 'figures', sub_dir)
+    if not os.path.isdir(fig_dir):
+        os.makedirs(fig_dir)
+
     for img_path in tqdm(img_list, desc='process image ...', ncols=100):
         img_fullname = os.path.basename(img_path)
         img_name = os.path.splitext(img_fullname)[0]
         pts_path = os.path.join(root, 'keypoints', 'labels_' + img_name + '.csv')
-        fig_dir = os.path.join(root, 'figures')
-        if not os.path.isdir(fig_dir):
-            os.makedirs(fig_dir)
+
         output_path = os.path.join(fig_dir, 'anno_' + img_fullname)
-        if not os.path.exists(pts_path) or not os.path.exists(img_path):
-            raise FileNotFoundError('File Not Found!')
+        if not os.path.exists(pts_path):
+            raise FileNotFoundError('File {} Not Found!'.format(pts_path))
+        if not os.path.exists(img_path):
+            raise FileNotFoundError('File {} Not Found!'.format(img_path))
+
         res_img = visualize_keypoints(img_path, pts_path)
         cv2.imwrite(output_path, res_img)
         cv2.waitKey(0)
