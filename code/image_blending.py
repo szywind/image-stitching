@@ -112,13 +112,13 @@ def multiband_blending(img_list):
 
     for img in tqdm(img_list, desc='process image ...', ncols=100):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        mask = gray > 5
+        mask = (gray > 5) * 255
         blender.feed(img.astype(np.int16), mask.astype(np.uint8), (0,0))
 
     res, res_mask = blender.blend(None, None)
     return res.astype(np.uint8)
 
-def run(method, img_list):
+def run(method, img_list, do_save=True):
     if method == BLENDER_TYPE.MAX:
         res_img = maximum(img_list)
     elif method == BLENDER_TYPE.AVG:
@@ -130,7 +130,8 @@ def run(method, img_list):
     else:
         raise ValueError('Unsupported blending moethod.')
     cv2.imshow('result', res_img)
-    # cv2.imwrite(os.path.join(output_dir, 'combined_{}_{}_{}.jpg'.format(sub_dir, method.value, datetime.now().strftime("%d-%m-%Y %H-%M-%S"))), res_img)
+    if do_save:
+        cv2.imwrite(os.path.join(output_dir, 'combined_{}_{}_{}.jpg'.format(sub_dir, method.value, datetime.now().strftime("%d-%m-%Y %H-%M-%S"))), res_img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
@@ -140,8 +141,8 @@ if __name__ == '__main__':
     for img in img_list:
         print(img.shape)
 
-    # run(BLENDER_TYPE.MAX, img_list)
-    # run(BLENDER_TYPE.AVG, img_list)
+    run(BLENDER_TYPE.MAX, img_list)
+    run(BLENDER_TYPE.AVG, img_list)
     run(BLENDER_TYPE.MULTIBAND, img_list)
     run(BLENDER_TYPE.FEATHER, img_list)
 
