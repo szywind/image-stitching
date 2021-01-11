@@ -143,7 +143,7 @@ if __name__ == '__main__':
 
     run(BLENDER_TYPE.MAX, img_list)
     run(BLENDER_TYPE.AVG, img_list)
-    run(BLENDER_TYPE.MULTIBAND, img_list)
     run(BLENDER_TYPE.FEATHER, img_list)
+    run(BLENDER_TYPE.MULTIBAND, img_list)
 
     # sift_blending()
