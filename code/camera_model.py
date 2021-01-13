@@ -17,6 +17,7 @@ root = os.path.dirname(os.path.dirname(__file__))
 pts_dir = os.path.join(root, 'keypoints')
 input_dir = os.path.join(root, 'input')
 output_dir = os.path.join(root, 'figures')
+sub_dir = 'set0'
 
 def evaluate_homography_matrix(im_src, pts_src, im_dst, pts_dst):
     '''
@@ -45,7 +46,7 @@ if __name__ == '__main__':
     df_kps_dst.sort_values(by=0, inplace=True)
     assert len(set(df_kps_dst[0].tolist())) == len(df_kps_dst[0].tolist()) # check uniqueness
 
-    img_list = glob.glob(os.path.join(input_dir, '2D*.jpg'))
+    img_list = glob.glob(os.path.join(input_dir, sub_dir, '2D*.jpg'))
     # img_list = [img for img in img_list if u'2D_车头视角2' in img]
     for img_path in tqdm(img_list, desc='process image ...', ncols=100):
         img_fullname_src = os.path.basename(img_path)
@@ -72,14 +73,19 @@ if __name__ == '__main__':
         res_img = evaluate_homography_matrix(img_src, kps_src, img_dst, kps_dst)
 
         ## TODO: use line detection later
+        TOP, BOTTOM, LEFT, RIGHT = 350, 1050, 340, 650
         if u'2D_后视角' in img_name_src:
-            res_img[:res_img.shape[0]//2, :] = 0
+            res_img[:BOTTOM, :] = 0
+        if u'2D_车头视角' in img_name_src:
+            res_img[TOP:, :] = 0
 
-        if u'2D_车头视角2' in img_name_src:
-            res_img[350:, :] = 0
+        if '_left' in img_name_src:
+            res_img[:, LEFT:] = 0
+        if '_right' in img_name_src:
+            res_img[:, :RIGHT] = 0
 
         cv2.imshow('result', res_img)
-        cv2.imwrite(os.path.join(output_dir, 'wrap_' + img_fullname_src), res_img)
+        cv2.imwrite(os.path.join(output_dir, sub_dir, 'wrap_' + img_fullname_src), res_img)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
